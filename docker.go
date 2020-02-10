@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"strconv"
 	"strings"
 
 	"github.com/docker/docker/api/types"
@@ -33,16 +32,6 @@ func NewClient() (*Client, error) {
 // Containers get contianers
 func (cli *Client) Containers() ([]types.Container, error) {
 	return cli.ContainerList(context.Background(), types.ContainerListOptions{})
-}
-
-// ContainerPID get container process id on host os
-// cid: container id
-func (cli *Client) ContainerPID(cid string) (string, error) {
-	containerJSON, err := cli.ContainerInspect(context.Background(), cid)
-	if err != nil {
-		return "", err
-	}
-	return strconv.Itoa(containerJSON.State.Pid), nil
 }
 
 // ContainerIflink get container iflink
