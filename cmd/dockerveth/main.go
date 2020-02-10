@@ -6,6 +6,8 @@ import (
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/skanehira/go-dockerveth"
 )
 
 func getInterfaces() (nets []net.Interface, err error) {
@@ -35,7 +37,7 @@ func onExit(err error) {
 }
 
 func run() error {
-	cli, err := NewClient()
+	cli, err := dockerveth.NewClient()
 	if err != nil {
 		return err
 	}
