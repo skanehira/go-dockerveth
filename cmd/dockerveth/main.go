@@ -67,7 +67,7 @@ func run() error {
 
 		for _, i := range nets {
 			if ifindex == i.Index {
-				fmt.Printf("%s\t%s\t%s\t\n", c.ID[:10], i.Name, c.Names)
+				fmt.Printf("%s\t%s\t%s\t\n", c.ID[:12], i.Name, strings.Join(c.Names, " "))
 			}
 		}
 	}
