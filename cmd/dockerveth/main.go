@@ -1,68 +1,70 @@
 package main
 
 import (
+	"flag"
 	"fmt"
-	"net"
 	"os"
-	"strconv"
-	"strings"
 
+	"github.com/olekukonko/tablewriter"
 	"github.com/skanehira/go-dockerveth"
 )
 
-func getInterfaces() (nets []net.Interface, err error) {
-	interfaces, err := net.Interfaces()
-	if err != nil {
-		return nil, err
-	}
-
-	for _, i := range interfaces {
-		if strings.Index(i.Name, "veth") != -1 {
-			nets = append(nets, i)
-		}
-	}
-	return
-}
+var (
+	isPlane = flag.Bool("p", false, "make plane text(default is make table)")
+)
 
 func onExit(err error) {
 	fmt.Fprintln(os.Stderr, err)
 	os.Exit(1)
 }
 
+func makeTable(rows [][]string) {
+	table := tablewriter.NewWriter(os.Stdout)
+	header := []string{"CONTAINER", "VETH", "NAMES", "IMAGE", "CMD"}
+	table.SetHeader(header)
+	headerColor := tablewriter.Colors{tablewriter.Bold, tablewriter.BgGreenColor}
+	var headerColors []tablewriter.Colors
+	for i := 0; i < len(header); i++ {
+		headerColors = append(headerColors, headerColor)
+	}
+	table.SetHeaderColor(headerColors...)
+	table.AppendBulk(rows)
+	table.Render()
+}
+
+func makePlaneText(rows [][]string) {
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetAutoWrapText(false)
+	table.SetAutoFormatHeaders(true)
+	table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
+	table.SetAlignment(tablewriter.ALIGN_LEFT)
+	table.SetCenterSeparator("")
+	table.SetColumnSeparator("")
+	table.SetRowSeparator("")
+	table.SetHeaderLine(false)
+	table.SetBorder(false)
+	table.SetTablePadding("\t")
+	table.SetNoWhiteSpace(true)
+	table.AppendBulk(rows)
+	table.Render()
+}
+
 func run() error {
+	flag.Parse()
 	cli, err := dockerveth.NewClient()
 	if err != nil {
 		return err
 	}
 
-	nets, err := getInterfaces()
+	rows, err := cli.GetContainerInfo()
 	if err != nil {
 		return err
 	}
 
-	containers, err := cli.Containers()
-	if err != nil {
-		return err
-	}
-
-	fmt.Println("CONTAINER\tVETH\t\tNAMES")
-
-	for _, c := range containers {
-		iflink, err := cli.ContainerIflink(c.ID)
-		if err != nil {
-			return err
-		}
-
-		ifindex, err := strconv.Atoi(iflink)
-		if err != nil {
-			return err
-		}
-
-		for _, i := range nets {
-			if ifindex == i.Index {
-				fmt.Printf("%s\t%s\t%s\t\n", c.ID[:12], i.Name, strings.Join(c.Names, " "))
-			}
-		}
+	if *isPlane {
+		makePlaneText(rows)
+	} else {
+		makeTable(rows)
 	}
 
 	return nil

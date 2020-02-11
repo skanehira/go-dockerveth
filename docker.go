@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"net"
+	"strconv"
 	"strings"
 
 	"github.com/docker/docker/api/types"
@@ -68,4 +70,67 @@ func (cli *Client) ContainerIflink(cid string) (string, error) {
 	}
 
 	return strings.Trim(dstout.String(), "\n"), nil
+}
+
+// GetContainerInfo get container info used by output
+func (cli *Client) GetContainerInfo() ([][]string, error) {
+	containers, err := cli.Containers()
+	if err != nil {
+		return nil, err
+	}
+
+	nets, err := getIPInterfaces()
+	if err != nil {
+		return nil, err
+	}
+
+	var rows [][]string
+	for _, c := range containers {
+		iflink, err := cli.ContainerIflink(c.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		ifindex, err := strconv.Atoi(iflink)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, i := range nets {
+			if ifindex == i.Index {
+				row := []string{
+					c.ID[:12],
+					i.Name,
+					parseContainerNames(c.Names),
+					c.Image,
+					c.Command,
+				}
+				rows = append(rows, row)
+			}
+		}
+	}
+	return rows, nil
+}
+
+// getIPInterfaces get ip info
+func getIPInterfaces() (nets []net.Interface, err error) {
+	interfaces, err := net.Interfaces()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, i := range interfaces {
+		if strings.Index(i.Name, "veth") != -1 {
+			nets = append(nets, i)
+		}
+	}
+	return
+}
+
+func parseContainerNames(names []string) string {
+	var s []string
+	for _, n := range names {
+		s = append(s, n[1:])
+	}
+	return strings.Join(s, " ")
 }
