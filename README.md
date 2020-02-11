@@ -43,5 +43,12 @@ Usage of dockerveth:
   -p    make plain text(default is make table)
 ```
 
+If you want to capture packet from container, you cat do it following.
+```sh
+# fzf is fuzzy finder, you can install it from https://github.com/junegunn/fzf
+# termshark is tui for wireshark, you can install if from https://github.com/gcla/termshark
+sudo termshark -i $(dockerveth -p | fzf | awk "{print \$2}")
+```
+
 ## Author
 skanehira
