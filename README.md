@@ -40,6 +40,8 @@ eadea1368853    veth43f9468     golang1.13      golang:latest   bash
 # help
 $ dockerveth -h
 Usage of dockerveth:
+  -nocolor
+        doesn't use header color
   -p    make plain text(default is make table)
 ```
 
