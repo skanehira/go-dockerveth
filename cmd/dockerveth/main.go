@@ -13,11 +13,6 @@ var (
 	isPlain = flag.Bool("p", false, "make plain text(default is make table)")
 )
 
-func onExit(err error) {
-	fmt.Fprintln(os.Stderr, err)
-	os.Exit(1)
-}
-
 func makeTable(rows [][]string) {
 	table := tablewriter.NewWriter(os.Stdout)
 	header := []string{"CONTAINER", "VETH", "NAMES", "IMAGE", "CMD"}
@@ -72,6 +67,7 @@ func run() error {
 
 func main() {
 	if err := run(); err != nil {
-		onExit(err)
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
 	}
 }
