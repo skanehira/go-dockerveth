@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/olekukonko/tablewriter"
@@ -11,24 +12,29 @@ import (
 
 var (
 	isPlain = flag.Bool("p", false, "make plain text(default is make table)")
+	noColor = flag.Bool("nocolor", false, "doesn't use header color")
 )
 
+var stdout io.Writer = os.Stdout
+
 func makeTable(rows [][]string) {
-	table := tablewriter.NewWriter(os.Stdout)
+	table := tablewriter.NewWriter(stdout)
 	header := []string{"CONTAINER", "VETH", "NAMES", "IMAGE", "CMD"}
 	table.SetHeader(header)
-	headerColor := tablewriter.Colors{tablewriter.Bold, tablewriter.BgGreenColor}
-	var headerColors []tablewriter.Colors
-	for i := 0; i < len(header); i++ {
-		headerColors = append(headerColors, headerColor)
+	if !*noColor {
+		headerColor := tablewriter.Colors{tablewriter.Bold, tablewriter.BgGreenColor}
+		var headerColors []tablewriter.Colors
+		for i := 0; i < len(header); i++ {
+			headerColors = append(headerColors, headerColor)
+		}
+		table.SetHeaderColor(headerColors...)
 	}
-	table.SetHeaderColor(headerColors...)
 	table.AppendBulk(rows)
 	table.Render()
 }
 
 func makePlainText(rows [][]string) {
-	table := tablewriter.NewWriter(os.Stdout)
+	table := tablewriter.NewWriter(stdout)
 	table.SetAutoWrapText(false)
 	table.SetAutoFormatHeaders(true)
 	table.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
