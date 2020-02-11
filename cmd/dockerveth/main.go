@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	isPlane = flag.Bool("p", false, "make plane text(default is make table)")
+	isPlain = flag.Bool("p", false, "make plain text(default is make table)")
 )
 
 func onExit(err error) {
@@ -32,7 +32,7 @@ func makeTable(rows [][]string) {
 	table.Render()
 }
 
-func makePlaneText(rows [][]string) {
+func makePlainText(rows [][]string) {
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetAutoWrapText(false)
 	table.SetAutoFormatHeaders(true)
@@ -61,8 +61,8 @@ func run() error {
 		return err
 	}
 
-	if *isPlane {
-		makePlaneText(rows)
+	if *isPlain {
+		makePlainText(rows)
 	} else {
 		makeTable(rows)
 	}
